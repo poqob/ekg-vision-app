@@ -1,0 +1,9 @@
+backend
+-authentication
+-authorization
+-logging
+-database
+  -models
+  -migrations
+  -repositories
+  -services
