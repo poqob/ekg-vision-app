@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
+import 'app_info_screen.dart';
+import 'privacy_policy_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -64,17 +66,6 @@ class SettingsScreen extends StatelessWidget {
           ),
 
           // Other Settings Sections
-          _buildSectionHeader(context, 'General'),
-          _buildSettingItem(
-            context,
-            icon: Icons.notifications_outlined,
-            title: 'Notifications',
-            subtitle: 'Configure app notifications',
-            onTap: () {
-              // Handle notifications settings
-            },
-          ),
-
           _buildSectionHeader(context, 'About'),
           _buildSettingItem(
             context,
@@ -82,7 +73,11 @@ class SettingsScreen extends StatelessWidget {
             title: 'App Information',
             subtitle: 'Version, licenses, and credits',
             onTap: () {
-              // Show app information
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const AppInfoScreen(),
+                ),
+              );
             },
           ),
 
@@ -92,7 +87,11 @@ class SettingsScreen extends StatelessWidget {
             title: 'Privacy Policy',
             subtitle: 'How we handle your data',
             onTap: () {
-              // Show privacy policy
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const PrivacyPolicyScreen(),
+                ),
+              );
             },
           ),
 
