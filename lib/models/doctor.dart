@@ -1,52 +1,39 @@
-class Doctor {
-  final int? id;
-  final String username;
+class User {
+  final String id;
   final String email;
-  final String? fullName;
-  final String? specialty;
-  final DateTime? createdAt;
-  final DateTime? lastLogin;
+  final String username;
+  final String passwordHash;
+  final String? name;
+  final String? profilePictureUrl;
 
-  Doctor({
-    this.id,
-    required this.username,
+  User({
+    required this.id,
     required this.email,
-    this.fullName,
-    this.specialty,
-    this.createdAt,
-    this.lastLogin,
+    required this.username,
+    required this.passwordHash,
+    this.name,
+    this.profilePictureUrl,
   });
 
-  factory Doctor.fromJson(Map<String, dynamic> json) {
-    return Doctor(
-      id: json['id'],
-      username: json['username'],
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
       email: json['email'],
-      fullName: json['full_name'],
-      specialty: json['specialty'],
-      createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'])
-          : null,
-      lastLogin: json['last_login'] != null
-          ? DateTime.parse(json['last_login'])
-          : null,
+      username: json['username'],
+      passwordHash: json['passwordHash'] ?? '',
+      name: json['name'],
+      profilePictureUrl: json['profilePictureUrl'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'username': username,
+      '_id': id,
       'email': email,
-      'full_name': fullName,
-      'specialty': specialty,
-      'created_at': createdAt?.toIso8601String(),
-      'last_login': lastLogin?.toIso8601String(),
+      'username': username,
+      'passwordHash': passwordHash,
+      if (name != null) 'name': name,
+      if (profilePictureUrl != null) 'profilePictureUrl': profilePictureUrl,
     };
-  }
-
-  @override
-  String toString() {
-    return 'Doctor{id: $id, username: $username, email: $email, fullName: $fullName, specialty: $specialty}';
   }
 }
