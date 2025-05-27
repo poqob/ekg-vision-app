@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'screens/index.dart';
-import 'screens/auth/register_screen.dart';
 import 'state/app_state.dart' as app_state;
 
 // Route names as constants

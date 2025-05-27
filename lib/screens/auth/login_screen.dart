@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -117,13 +117,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 16),
                   ],
 
-                  // Username field
+                  // Email field (was username)
                   TextFormField(
                     controller: _usernameController,
+                    keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
-                      labelText: 'Username',
-                      hintText: 'Enter your username',
-                      prefixIcon: const Icon(Icons.person),
+                      labelText: 'Email',
+                      hintText: 'Enter your email',
+                      prefixIcon: const Icon(Icons.email),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -132,7 +133,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter your username';
+                        return 'Please enter your email';
+                      }
+                      // Fixed email regex
+                      if (!RegExp(r'^[\w\.-]+@[\w\.-]+\.[a-zA-Z]{2,}')
+                          .hasMatch(value)) {
+                        return 'Please enter a valid email';
                       }
                       return null;
                     },
