@@ -42,30 +42,57 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
       ),
       body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.monitor_heart_rounded),
-            label: 'Scanning',
+      // Island-style floating bottom navigation bar
+      extendBody: true,
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(bottom: 24.0, left: 24.0, right: 24.0),
+        child: PhysicalModel(
+          color: Colors.transparent,
+          elevation: 16,
+          borderRadius: BorderRadius.circular(32),
+          shadowColor: Colors.black.withOpacity(0.2),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(32),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context)
+                        .bottomNavigationBarTheme
+                        .backgroundColor ??
+                    (Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey.shade900
+                        : Colors.white),
+                borderRadius: BorderRadius.circular(32),
+              ),
+              child: BottomNavigationBar(
+                items: const <BottomNavigationBarItem>[
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.monitor_heart_rounded),
+                    label: 'Scanning',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.analytics),
+                    label: 'Analysis',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.person),
+                    label: 'Profile',
+                  ),
+                ],
+                currentIndex: _selectedIndex,
+                selectedItemColor: Theme.of(context).colorScheme.primary,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                unselectedItemColor:
+                    Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey.shade400
+                        : Colors.grey.shade700,
+                onTap: _onItemTapped,
+                type: BottomNavigationBarType.fixed,
+                showUnselectedLabels: true,
+              ),
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics),
-            label: 'Analysis',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Theme.of(context).colorScheme.primary,
-        backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.grey.shade900
-            : null,
-        unselectedItemColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.grey.shade400
-            : Colors.grey.shade700,
-        onTap: _onItemTapped,
+        ),
       ),
     );
   }
