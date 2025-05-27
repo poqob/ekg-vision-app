@@ -1,55 +1,174 @@
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../routes.dart' as app_routes;
 import '../../state/app_state.dart';
-import '../../models/doctor.dart';
+import '../../models/doctor.dart' as user_model;
+import 'login_history_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  Uint8List? _profilePictureBytes;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfilePictureFromMemory();
+  }
+
+  void _loadProfilePictureFromMemory() async {
+    final prefs = await SharedPreferences.getInstance();
+    final b64 = prefs.getString('profile_picture_bytes');
+    if (b64 != null && b64.isNotEmpty) {
+      try {
+        setState(() {
+          _profilePictureBytes = base64Decode(b64);
+        });
+      } catch (e) {
+        await prefs.remove('profile_picture_bytes');
+        setState(() {
+          _profilePictureBytes = null;
+        });
+      }
+    } else {
+      setState(() {
+        _profilePictureBytes = null;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final appState = AppStateProvider.of(context);
-    final Doctor? doctor = appState.currentDoctor;
+    final user_model.User? user = appState.currentUser;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundColor: Colors.blue,
-            child: doctor != null && doctor.username.isNotEmpty
-                ? Text(
-                    doctor.username.substring(0, 1).toUpperCase(),
-                    style: const TextStyle(fontSize: 40, color: Colors.white),
+          GestureDetector(
+            onTap: () async {
+              showModalBottomSheet(
+                context: context,
+                builder: (context) {
+                  return SafeArea(
+                    child: Wrap(
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.upload_file),
+                          title: const Text('Upload Profile Picture'),
+                          onTap: () async {
+                            Navigator.pop(context);
+                            final result = await FilePicker.platform
+                                .pickFiles(type: FileType.image);
+                            if (result != null &&
+                                result.files.single.path != null &&
+                                user != null) {
+                              final filePath = result.files.single.path!;
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              final token = prefs.getString('auth_token');
+                              if (token == null) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('Not authenticated.')),
+                                );
+                                return;
+                              }
+                              final uri = Uri.parse(
+                                  'http://localhost:8080/upload_profile_picture?userId=${user.id}');
+                              final request = http.MultipartRequest('POST', uri)
+                                ..headers['Authorization'] = 'Bearer $token'
+                                ..files.add(await http.MultipartFile.fromPath(
+                                    'file', filePath));
+                              final response = await request.send();
+                              await response.stream.bytesToString();
+                              if (response.statusCode == 200) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content:
+                                          Text('Profile picture uploaded!')),
+                                );
+                                // Download and cache the new profile picture
+                                await _downloadAndCacheProfilePicture(user.id);
+                                // Load the new profile picture from memory
+                                _loadProfilePictureFromMemory();
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text(
+                                          'Upload failed: ${response.statusCode}')),
+                                );
+                              }
+                            }
+                          },
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.camera_alt),
+                          title: const Text('Shoot a Photo'),
+                          onTap: () async {
+                            Navigator.pop(context);
+                            // TODO: Implement camera capture and upload logic
+                          },
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.delete),
+                          title: const Text('Delete Profile Picture'),
+                          onTap: () async {
+                            Navigator.pop(context);
+                            // TODO: Implement delete profile picture logic
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+            child: (_profilePictureBytes != null)
+                ? CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.white,
+                    backgroundImage: MemoryImage(_profilePictureBytes!),
                   )
-                : const Icon(Icons.person, size: 50, color: Colors.white),
+                : CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.white,
+                    child: user != null && user.username.isNotEmpty
+                        ? Text(
+                            user.username.substring(0, 1).toUpperCase(),
+                            style: const TextStyle(
+                                fontSize: 40, color: Colors.black),
+                          )
+                        : const Icon(Icons.person,
+                            size: 50, color: Colors.black),
+                  ),
           ),
           const SizedBox(height: 20),
           Text(
-            doctor?.fullName ?? 'Doctor',
+            user?.name?.isNotEmpty == true
+                ? user!.name!
+                : (user?.username ?? 'User'),
             style: Theme.of(context).textTheme.headlineSmall,
           ),
           const SizedBox(height: 5),
           Text(
-            doctor?.email ?? '',
+            user?.email ?? '',
             style: TextStyle(
               fontSize: 16,
               color: isDark ? Colors.white70 : Colors.black54,
             ),
           ),
-          if (doctor?.specialty != null) ...[
-            const SizedBox(height: 5),
-            Text(
-              doctor!.specialty!,
-              style: TextStyle(
-                fontSize: 14,
-                fontStyle: FontStyle.italic,
-                color: isDark ? Colors.white60 : Colors.black45,
-              ),
-            ),
-          ],
           const SizedBox(height: 40),
           ListTile(
             leading: const Icon(Icons.settings),
@@ -63,7 +182,11 @@ class ProfileScreen extends StatelessWidget {
             leading: const Icon(Icons.history),
             title: const Text('History'),
             onTap: () {
-              // Navigate to history
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const LoginHistoryScreen(),
+                ),
+              );
             },
           ),
           ListTile(
@@ -109,5 +232,22 @@ class ProfileScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _downloadAndCacheProfilePicture(String userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final ppUrl = 'http://localhost:8080/profile_picture/$userId';
+    try {
+      final ppResponse = await http.get(Uri.parse(ppUrl));
+      if (ppResponse.statusCode == 200 &&
+          ppResponse.headers['content-type']?.startsWith('image/') == true) {
+        await prefs.setString(
+            'profile_picture_bytes', base64Encode(ppResponse.bodyBytes));
+      } else {
+        await prefs.remove('profile_picture_bytes');
+      }
+    } catch (e) {
+      await prefs.remove('profile_picture_bytes');
+    }
   }
 }
