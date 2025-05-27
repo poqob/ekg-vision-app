@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/doctor.dart';
+import '../models/doctor.dart' as user_model;
 import '../services/auth_service.dart';
 
 class AppState extends ChangeNotifier {
@@ -8,7 +8,7 @@ class AppState extends ChangeNotifier {
   bool _isLoggedIn = false;
   int _currentTabIndex = 0;
   bool _isDarkMode = false;
-  Doctor? _currentDoctor;
+  user_model.User? _currentUser;
   bool _isLoading = false;
   String? _authError;
 
@@ -45,11 +45,11 @@ class AppState extends ChangeNotifier {
     try {
       _isLoggedIn = await _authService.isAuthenticated();
       if (_isLoggedIn) {
-        _currentDoctor = await _authService.getSavedDoctor();
+        _currentUser = await _authService.getSavedUser();
       }
     } catch (e) {
       _isLoggedIn = false;
-      _currentDoctor = null;
+      _currentUser = null;
     }
 
     _isLoading = false;
@@ -61,7 +61,7 @@ class AppState extends ChangeNotifier {
   int get currentTabIndex => _currentTabIndex;
   bool get isDarkMode => _isDarkMode;
   ThemeMode get themeMode => _isDarkMode ? ThemeMode.dark : ThemeMode.light;
-  Doctor? get currentDoctor => _currentDoctor;
+  user_model.User? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
   String? get authError => _authError;
 
@@ -79,7 +79,7 @@ class AppState extends ChangeNotifier {
 
       if (response['success'] == true) {
         _isLoggedIn = true;
-        _currentDoctor = await _authService.getSavedDoctor();
+        _currentUser = await _authService.getSavedUser();
         _isLoading = false;
         notifyListeners();
         return true;
@@ -123,7 +123,7 @@ class AppState extends ChangeNotifier {
       if (response['success'] == true) {
         debugPrint('AppState: registration successful');
         _isLoggedIn = true;
-        _currentDoctor = await _authService.getSavedDoctor();
+        _currentUser = await _authService.getSavedUser();
         _isLoading = false;
         notifyListeners();
         return true;
@@ -153,7 +153,7 @@ class AppState extends ChangeNotifier {
       // Ignore errors during logout
     } finally {
       _isLoggedIn = false;
-      _currentDoctor = null;
+      _currentUser = null;
       _isLoading = false;
       notifyListeners();
     }
@@ -179,6 +179,15 @@ class AppState extends ChangeNotifier {
     if (_isDarkMode != value) {
       _isDarkMode = value;
       _savePreferences();
+      notifyListeners();
+    }
+  }
+
+  // Refresh user data from backend
+  Future<void> refreshUser() async {
+    final user = await _authService.getCurrentUserFromBackend();
+    if (user != null) {
+      _currentUser = user;
       notifyListeners();
     }
   }

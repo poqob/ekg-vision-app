@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/doctor.dart';
+import '../models/doctor.dart' as user_model;
 
 class AuthService {
-  // Local storage keys
+  static const String baseUrl = 'http://localhost:8080';
   static const String tokenKey = 'auth_token';
   static const String userKey = 'user_data';
 
@@ -17,115 +18,135 @@ class AuthService {
     String? specialty,
   }) async {
     try {
-      debugPrint('Processing local registration');
-      debugPrint(
-          'Register data: username=$username, email=$email, fullName=$fullName, specialty=$specialty');
-
-      // Simulate network delay
-      await Future.delayed(const Duration(milliseconds: 800));
-
-      // Check if username already exists (you could extend this to check email too)
-      final prefs = await SharedPreferences.getInstance();
-      final allUsers = prefs.getStringList('all_users') ?? [];
-
-      if (allUsers.contains(username)) {
-        return {
-          'success': false,
-          'message': 'Username already exists',
-        };
+      debugPrint('Sending register request to: $baseUrl/register');
+      final response = await http.post(
+        Uri.parse('$baseUrl/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'username': username,
+          'password': password,
+          'email': email,
+          if (fullName != null && fullName.isNotEmpty) 'full_name': fullName,
+          if (specialty != null && specialty.isNotEmpty) 'specialty': specialty,
+        }),
+      );
+      debugPrint('Register response status code: \\${response.statusCode}');
+      debugPrint('Register response body: \\${response.body}');
+      final data = jsonDecode(response.body);
+      if (data['success'] == true && data['token'] != null) {
+        await _saveAuthData(data['token'], data['user']);
       }
-
-      // Generate a mock token
-      final token = 'mock_token_${DateTime.now().millisecondsSinceEpoch}';
-
-      // Create user data
-      final userData = {
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
-        'username': username,
-        'email': email,
-        'full_name': fullName ?? '',
-        'specialty': specialty ?? '',
-        'created_at': DateTime.now().toIso8601String(),
-      };
-
-      // Save the new user
-      allUsers.add(username);
-      await prefs.setStringList('all_users', allUsers);
-
-      // Save user specific data
-      await _saveAuthData(token, userData);
-
-      debugPrint('Registration successful, saving auth data');
-
-      return {
-        'success': true,
-        'message': 'Registration successful',
-        'token': token,
-        'user': userData,
-      };
+      return data;
     } catch (e) {
       debugPrint('Error during registration: $e');
       return {
         'success': false,
-        'message': 'Registration error: ${e.toString()}',
+        'message': 'Registration error: \\${e.toString()}',
       };
     }
   }
 
   // Login a doctor
   Future<Map<String, dynamic>> login({
-    required String username,
+    required String username, // username is actually email for backend
     required String password,
   }) async {
     try {
-      debugPrint('Processing local login');
-
-      // Simulate network delay
-      await Future.delayed(const Duration(milliseconds: 800));
-
-      // For simplicity, we're not actually checking passwords in this mock implementation
-      // In a real app, you would verify credentials properly
-
-      // Check if user exists
-      final prefs = await SharedPreferences.getInstance();
-      final allUsers = prefs.getStringList('all_users') ?? [];
-
-      if (!allUsers.contains(username)) {
-        return {
-          'success': false,
-          'message': 'Invalid username or password',
-        };
+      debugPrint('Sending login request to: $baseUrl/login');
+      final response = await http.post(
+        Uri.parse('$baseUrl/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': username, // username field is actually email for backend
+          'password': password,
+        }),
+      );
+      debugPrint('Login response status code: \\${response.statusCode}');
+      debugPrint('Login response body: \\${response.body}');
+      Map<String, dynamic> data = {};
+      if (response.statusCode == 200) {
+        try {
+          data = jsonDecode(response.body);
+        } catch (e) {
+          data = {
+            'success': false,
+            'message': 'Invalid response from server',
+          };
+        }
+        if (data['token'] != null) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString(tokenKey, data['token']);
+          // Fetch user info with token
+          final userInfoResponse = await http.get(
+            Uri.parse('$baseUrl/me'),
+            headers: {
+              'Authorization': 'Bearer ${data['token']}',
+              'Content-Type': 'application/json',
+            },
+          );
+          debugPrint(
+              'User info response status code: \\${userInfoResponse.statusCode}');
+          debugPrint('User info response body: \\${userInfoResponse.body}');
+          if (userInfoResponse.statusCode == 200) {
+            try {
+              final userInfo = jsonDecode(userInfoResponse.body);
+              data['user'] = userInfo;
+              await prefs.setString(userKey, jsonEncode(userInfo));
+              // Download and save profile picture if present
+              if (userInfo['profilePictureUrl'] != null &&
+                  userInfo['profilePictureUrl'].toString().isNotEmpty &&
+                  userInfo['profilePictureUrl'] !=
+                      '/static/default_profile.png') {
+                final userId = userInfo['id'] ?? userInfo['_id'];
+                final fullUrl = 'http://localhost:8080/profile_picture/$userId';
+                try {
+                  final ppResponse = await http.get(Uri.parse(fullUrl));
+                  if (ppResponse.statusCode == 200 &&
+                      ppResponse.headers['content-type']
+                              ?.startsWith('image/') ==
+                          true) {
+                    // Save the raw bytes to shared preferences as base64
+                    await prefs.setString('profile_picture_bytes',
+                        base64Encode(ppResponse.bodyBytes));
+                  } else {
+                    await prefs.remove('profile_picture_bytes');
+                  }
+                } catch (e) {
+                  debugPrint('Error downloading profile picture: $e');
+                  await prefs.remove('profile_picture_bytes');
+                }
+              } else {
+                await prefs.remove('profile_picture_bytes');
+              }
+            } catch (e) {
+              debugPrint('Error parsing user info: $e');
+            }
+          }
+          data['success'] = true;
+        } else {
+          data['success'] = false;
+          data['message'] = data['message'] ?? 'No token received from server.';
+        }
+      } else {
+        // Handle non-200 responses
+        try {
+          data = jsonDecode(response.body);
+        } catch (e) {
+          data = {
+            'success': false,
+            'message': response.body,
+          };
+        }
+        data['success'] = false;
+        data['message'] = data['message'] ??
+            'Login failed with status ${response.statusCode}.';
       }
-
-      // Generate a mock token
-      final token = 'mock_token_${DateTime.now().millisecondsSinceEpoch}';
-
-      // Mock user data - in a real implementation you would retrieve this from storage
-      final userData = {
-        'id': '123456',
-        'username': username,
-        'email': '$username@example.com',
-        'full_name': 'Dr. $username',
-        'specialty': 'Cardiology',
-        'created_at': DateTime.now().toIso8601String(),
-      };
-
-      // Save auth data
-      await _saveAuthData(token, userData);
-
-      debugPrint('Login successful');
-
-      return {
-        'success': true,
-        'message': 'Login successful',
-        'token': token,
-        'user': userData,
-      };
+      return data;
     } catch (e) {
       debugPrint('Error during login: $e');
       return {
         'success': false,
-        'message': 'Login error: ${e.toString()}',
+        'message': 'Login error: \\${e.toString()}',
       };
     }
   }
@@ -150,17 +171,59 @@ class AuthService {
     }
   }
 
-  // Get current doctor profile
-  Future<Map<String, dynamic>?> getCurrentDoctor() async {
+  // Get saved user data
+  Future<user_model.User?> getSavedUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userData = prefs.getString(userKey);
+    if (userData == null) {
+      return null;
+    }
     try {
-      final doctor = await getSavedDoctor();
-      if (doctor == null) {
+      return user_model.User.fromJson(jsonDecode(userData));
+    } catch (e) {
+      debugPrint('Error parsing saved user data: $e');
+      return null;
+    }
+  }
+
+  // Get current user profile
+  Future<Map<String, dynamic>?> getCurrentUser() async {
+    try {
+      final user = await getSavedUser();
+      if (user == null) {
         return null;
       }
-
-      return doctor.toJson();
+      return user.toJson();
     } catch (e) {
-      debugPrint('Error getting current doctor: $e');
+      debugPrint('Error getting current user: $e');
+      return null;
+    }
+  }
+
+  // Fetch user data from backend and update local storage
+  Future<user_model.User?> getCurrentUserFromBackend() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      if (token == null) return null;
+      final response = await http.get(
+        Uri.parse('http://localhost:8080/me'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        final userJson = response.body;
+        final userMap = userJson.isNotEmpty
+            ? Map<String, dynamic>.from(jsonDecode(userJson))
+            : null;
+        if (userMap != null) {
+          final user = user_model.User.fromJson(userMap);
+          await prefs.setString('user_data', userJson);
+          return user;
+        }
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error fetching user from backend: $e');
       return null;
     }
   }
@@ -175,22 +238,6 @@ class AuthService {
   Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(tokenKey);
-  }
-
-  // Get saved user data
-  Future<Doctor?> getSavedDoctor() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userData = prefs.getString(userKey);
-    if (userData == null) {
-      return null;
-    }
-
-    try {
-      return Doctor.fromJson(jsonDecode(userData));
-    } catch (e) {
-      debugPrint('Error parsing saved doctor data: $e');
-      return null;
-    }
   }
 
   // Save authentication data
