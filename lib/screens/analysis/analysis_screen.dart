@@ -57,47 +57,52 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.search),
-        onPressed: () async {
-          final result = await showDialog<String>(
-            context: context,
-            builder: (context) {
-              String tempQuery = _searchQuery ?? '';
-              return AlertDialog(
-                title: const Text('Search patient username'),
-                content: TextField(
-                  autofocus: true,
-                  decoration: const InputDecoration(
-                    hintText: 'Enter patient username...',
+      // Add bottom padding to the FAB to avoid overlap with the bottom nav bar
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(
+            bottom: 90.0), // Adjust as needed for nav bar height
+        child: FloatingActionButton(
+          child: const Icon(Icons.search),
+          onPressed: () async {
+            final result = await showDialog<String>(
+              context: context,
+              builder: (context) {
+                String tempQuery = _searchQuery ?? '';
+                return AlertDialog(
+                  title: const Text('Search patient username'),
+                  content: TextField(
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter patient username...',
+                    ),
+                    controller: TextEditingController(text: tempQuery),
+                    onChanged: (value) {
+                      tempQuery = value;
+                    },
+                    onSubmitted: (value) {
+                      Navigator.of(context).pop(value.trim());
+                    },
                   ),
-                  controller: TextEditingController(text: tempQuery),
-                  onChanged: (value) {
-                    tempQuery = value;
-                  },
-                  onSubmitted: (value) {
-                    Navigator.of(context).pop(value.trim());
-                  },
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () =>
-                        Navigator.of(context).pop(tempQuery.trim()),
-                    child: const Text('Search'),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(''),
-                    child: const Text('Clear'),
-                  ),
-                ],
-              );
-            },
-          );
-          setState(() {
-            _searchQuery = result ?? '';
-          });
-        },
-        tooltip: 'Search patient',
+                  actions: [
+                    TextButton(
+                      onPressed: () =>
+                          Navigator.of(context).pop(tempQuery.trim()),
+                      child: const Text('Search'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(''),
+                      child: const Text('Clear'),
+                    ),
+                  ],
+                );
+              },
+            );
+            setState(() {
+              _searchQuery = result ?? '';
+            });
+          },
+          tooltip: 'Search patient',
+        ),
       ),
       body: FutureBuilder<List<Scan>>(
         future: fetchScanResults(),
