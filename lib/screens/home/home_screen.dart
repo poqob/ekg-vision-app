@@ -21,7 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   // Navigation titles
-  final List<String> _titles = const ['Dashboard', 'Analysis', 'Profile'];
+  final List<String> _titles = const ['Scanning', 'Analysis', 'Profile'];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -45,8 +45,8 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
+            icon: Icon(Icons.monitor_heart_rounded),
+            label: 'Scanning',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.analytics),

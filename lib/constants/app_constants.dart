@@ -1,6 +1,6 @@
 class AppConstants {
   // App info
-  static const String appName = 'EKG Vision';
+  static const String appName = 'ECG Vision';
   static const String appTagline = 'Your Heart Health Companion';
 
   // Asset paths
