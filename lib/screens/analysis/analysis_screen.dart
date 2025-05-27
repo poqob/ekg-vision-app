@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'scan_detail_screen.dart';
 
 class AnalysisScreen extends StatefulWidget {
   const AnalysisScreen({super.key});
@@ -159,7 +160,14 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                             'Model: ${scan.modelName}\nDate: ${_formatDate(scan.date)}'),
                         trailing: _buildNormalAnormalCounts(scan.boxes),
                         onTap: () {
-                          // TODO: Show scan details or open file
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => ScanDetailScreen(
+                                scan: scan,
+                                patientName: scanWithName.patientName,
+                              ),
+                            ),
+                          );
                         },
                       );
                     },

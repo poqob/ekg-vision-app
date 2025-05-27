@@ -181,9 +181,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
           if (imageFile != null) ...[
             const SizedBox(height: 12),
             Center(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.file(imageFile!, height: 180),
+              child: GestureDetector(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => Dialog(
+                      child: InteractiveViewer(
+                        child: Image.file(imageFile!, fit: BoxFit.contain),
+                      ),
+                    ),
+                  );
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(imageFile!, height: 180),
+                ),
               ),
             ),
           ],
@@ -205,34 +217,67 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 16),
             Text(error!, style: const TextStyle(color: Colors.red)),
           ],
-          if (boxes.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            Text('Detections:', style: Theme.of(context).textTheme.titleMedium),
-            ...boxes.map((b) => Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.crop_square),
-                    title: Text(
-                        'Class: ${b['class']}  Confidence: ${(b['confidence'] * 100).toStringAsFixed(1)}%'),
-                    subtitle: Text(
-                        'x: ${b['x_center']}, y: ${b['y_center']}, w: ${b['width']}, h: ${b['height']}'),
-                  ),
-                )),
-          ],
           if (resultImageUrl != null) ...[
             const SizedBox(height: 24),
             Text('Annotated Image:',
                 style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             Center(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(resultImageUrl!,
-                    height: 220,
-                    fit: BoxFit.contain,
-                    errorBuilder: (c, e, s) =>
-                        const Text('Image not available')),
+              child: GestureDetector(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => Dialog(
+                      child: InteractiveViewer(
+                        child:
+                            Image.network(resultImageUrl!, fit: BoxFit.contain),
+                      ),
+                    ),
+                  );
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(resultImageUrl!,
+                      height: 220,
+                      fit: BoxFit.contain,
+                      errorBuilder: (c, e, s) =>
+                          const Text('Image not available')),
+                ),
               ),
             ),
+          ],
+          if (boxes.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            Text('Detections:', style: Theme.of(context).textTheme.titleMedium),
+            ...boxes.asMap().entries.map((entry) {
+              final b = entry.value;
+              final isAnormal = b['class'] == 0;
+              final classLabel = b['class'] == 0 ? 'Anormal' : 'Normal';
+              final color = isAnormal ? Colors.red : Colors.green;
+              return Card(
+                color: color.withOpacity(0.07),
+                child: ListTile(
+                  leading: isAnormal
+                      ? const Text('!',
+                          style: TextStyle(
+                              fontSize: 28,
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold))
+                      : Icon(Icons.check_circle_outline, color: Colors.green),
+                  title: Text(
+                    'Class: $classLabel',
+                    style: TextStyle(
+                      color: color,
+                      fontWeight:
+                          isAnormal ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Confidence: ${(b['confidence'] * 100).toStringAsFixed(1)}%',
+                  ),
+                ),
+              );
+            }),
           ],
         ],
       ),
