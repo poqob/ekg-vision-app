@@ -8,6 +8,8 @@ import '../../routes.dart' as app_routes;
 import '../../state/app_state.dart';
 import '../../models/doctor.dart' as user_model;
 import 'login_history_screen.dart';
+import 'about_screen.dart';
+import 'privacy_policy_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -53,183 +55,244 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          GestureDetector(
-            onTap: () async {
-              showModalBottomSheet(
-                context: context,
-                builder: (context) {
-                  return SafeArea(
-                    child: Wrap(
-                      children: [
-                        ListTile(
-                          leading: const Icon(Icons.upload_file),
-                          title: const Text('Upload Profile Picture'),
-                          onTap: () async {
-                            Navigator.pop(context);
-                            final result = await FilePicker.platform
-                                .pickFiles(type: FileType.image);
-                            if (result != null &&
-                                result.files.single.path != null &&
-                                user != null) {
-                              final filePath = result.files.single.path!;
-                              final prefs =
-                                  await SharedPreferences.getInstance();
-                              final token = prefs.getString('auth_token');
-                              if (token == null) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text('Not authenticated.')),
-                                );
-                                return;
-                              }
-                              final uri = Uri.parse(
-                                  'http://localhost:8080/upload_profile_picture?userId=${user.id}');
-                              final request = http.MultipartRequest('POST', uri)
-                                ..headers['Authorization'] = 'Bearer $token'
-                                ..files.add(await http.MultipartFile.fromPath(
-                                    'file', filePath));
-                              final response = await request.send();
-                              await response.stream.bytesToString();
-                              if (response.statusCode == 200) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content:
-                                          Text('Profile picture uploaded!')),
-                                );
-                                // Download and cache the new profile picture
-                                await _downloadAndCacheProfilePicture(user.id);
-                                // Load the new profile picture from memory
-                                _loadProfilePictureFromMemory();
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                      content: Text(
-                                          'Upload failed: ${response.statusCode}')),
-                                );
-                              }
-                            }
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Profile Card
+            Card(
+              elevation: 2,
+              margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24)),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                child: Column(
+                  children: [
+                    GestureDetector(
+                      onTap: () async {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) {
+                            return SafeArea(
+                              child: Wrap(
+                                children: [
+                                  ListTile(
+                                    leading: const Icon(Icons.upload_file),
+                                    title: const Text('Upload Profile Picture'),
+                                    onTap: () async {
+                                      Navigator.pop(context);
+                                      final result = await FilePicker.platform
+                                          .pickFiles(type: FileType.image);
+                                      if (result != null &&
+                                          result.files.single.path != null &&
+                                          user != null) {
+                                        final filePath =
+                                            result.files.single.path!;
+                                        final prefs = await SharedPreferences
+                                            .getInstance();
+                                        final token =
+                                            prefs.getString('auth_token');
+                                        if (token == null) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                                content:
+                                                    Text('Not authenticated.')),
+                                          );
+                                          return;
+                                        }
+                                        final uri = Uri.parse(
+                                            'http://localhost:8080/upload_profile_picture?userId=${user.id}');
+                                        final request = http.MultipartRequest(
+                                            'POST', uri)
+                                          ..headers['Authorization'] =
+                                              'Bearer $token'
+                                          ..files.add(
+                                              await http.MultipartFile.fromPath(
+                                                  'file', filePath));
+                                        final response = await request.send();
+                                        await response.stream.bytesToString();
+                                        if (response.statusCode == 200) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                                content: Text(
+                                                    'Profile picture uploaded!')),
+                                          );
+                                          // Download and cache the new profile picture
+                                          await _downloadAndCacheProfilePicture(
+                                              user.id);
+                                          // Load the new profile picture from memory
+                                          _loadProfilePictureFromMemory();
+                                        } else {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                                content: Text(
+                                                    'Upload failed: ${response.statusCode}')),
+                                          );
+                                        }
+                                      }
+                                    },
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(Icons.camera_alt),
+                                    title: const Text('Shoot a Photo'),
+                                    onTap: () async {
+                                      Navigator.pop(context);
+                                      // TODO: Implement camera capture and upload logic
+                                    },
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(Icons.delete),
+                                    title: const Text('Delete Profile Picture'),
+                                    onTap: () async {
+                                      Navigator.pop(context);
+                                      // TODO: Implement delete profile picture logic
+                                    },
+                                  ),
+                                ],
+                              ),
+                            );
                           },
-                        ),
-                        ListTile(
-                          leading: const Icon(Icons.camera_alt),
-                          title: const Text('Shoot a Photo'),
-                          onTap: () async {
-                            Navigator.pop(context);
-                            // TODO: Implement camera capture and upload logic
-                          },
-                        ),
-                        ListTile(
-                          leading: const Icon(Icons.delete),
-                          title: const Text('Delete Profile Picture'),
-                          onTap: () async {
-                            Navigator.pop(context);
-                            // TODO: Implement delete profile picture logic
-                          },
-                        ),
-                      ],
+                        );
+                      },
+                      child: (_profilePictureBytes != null)
+                          ? CircleAvatar(
+                              radius: 50,
+                              backgroundColor: Colors.white,
+                              backgroundImage:
+                                  MemoryImage(_profilePictureBytes!),
+                            )
+                          : CircleAvatar(
+                              radius: 50,
+                              backgroundColor: Colors.white,
+                              child: user != null && user.username.isNotEmpty
+                                  ? Text(
+                                      user.username
+                                          .substring(0, 1)
+                                          .toUpperCase(),
+                                      style: const TextStyle(
+                                          fontSize: 40, color: Colors.black),
+                                    )
+                                  : const Icon(Icons.person,
+                                      size: 50, color: Colors.black),
+                            ),
                     ),
-                  );
-                },
-              );
-            },
-            child: (_profilePictureBytes != null)
-                ? CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.white,
-                    backgroundImage: MemoryImage(_profilePictureBytes!),
-                  )
-                : CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.white,
-                    child: user != null && user.username.isNotEmpty
-                        ? Text(
-                            user.username.substring(0, 1).toUpperCase(),
-                            style: const TextStyle(
-                                fontSize: 40, color: Colors.black),
-                          )
-                        : const Icon(Icons.person,
-                            size: 50, color: Colors.black),
-                  ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            user?.name?.isNotEmpty == true
-                ? user!.name!
-                : (user?.username ?? 'User'),
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 5),
-          Text(
-            user?.email ?? '',
-            style: TextStyle(
-              fontSize: 16,
-              color: isDark ? Colors.white70 : Colors.black54,
-            ),
-          ),
-          const SizedBox(height: 40),
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text('Settings'),
-            onTap: () {
-              // Navigate to settings
-              Navigator.of(context).pushNamed(app_routes.Routes.settings);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.history),
-            title: const Text('History'),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const LoginHistoryScreen(),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.info),
-            title: const Text('About'),
-            onTap: () {
-              // Show about dialog
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.logout, color: Colors.red),
-            title: const Text('Logout', style: TextStyle(color: Colors.red)),
-            onTap: () async {
-              // Show confirmation dialog
-              final shouldLogout = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Logout'),
-                  content: const Text('Are you sure you want to logout?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: const Text('CANCEL'),
+                    const SizedBox(height: 16),
+                    Text(
+                      user?.name?.isNotEmpty == true
+                          ? user!.name!
+                          : (user?.username ?? 'User'),
+                      style: Theme.of(context).textTheme.headlineSmall,
                     ),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text('LOGOUT'),
+                    const SizedBox(height: 5),
+                    Text(
+                      user?.email ?? '',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: isDark ? Colors.white70 : Colors.black54,
+                      ),
                     ),
                   ],
                 ),
-              );
-
-              if (shouldLogout == true && context.mounted) {
-                // Perform logout
-                await appState.logout();
-
-                // Navigate to login screen
-                Navigator.of(context)
-                    .pushReplacementNamed(app_routes.Routes.login);
-              }
-            },
-          ),
-        ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Quick Actions
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _ProfileActionButton(
+                  icon: Icons.settings,
+                  label: 'Settings',
+                  onTap: () {
+                    Navigator.of(context).pushNamed(app_routes.Routes.settings);
+                  },
+                ),
+                const SizedBox(width: 16),
+                _ProfileActionButton(
+                  icon: Icons.history,
+                  label: 'History',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const LoginHistoryScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(width: 16),
+                _ProfileActionButton(
+                  icon: Icons.logout,
+                  label: 'Logout',
+                  color: Colors.red,
+                  onTap: () async {
+                    final shouldLogout = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Logout'),
+                        content: const Text('Are you sure you want to logout?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: const Text('CANCEL'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            child: const Text('LOGOUT'),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (shouldLogout == true && context.mounted) {
+                      await appState.logout();
+                      Navigator.of(context)
+                          .pushReplacementNamed(app_routes.Routes.login);
+                    }
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            // Details List
+            Card(
+              elevation: 1,
+              margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.info_outline),
+                    title: const Text('About'),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => AboutScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  const Divider(height: 0),
+                  ListTile(
+                    leading: const Icon(Icons.privacy_tip_outlined),
+                    title: const Text('Privacy Policy'),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => PrivacyPolicyScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -249,5 +312,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       await prefs.remove('profile_picture_bytes');
     }
+  }
+}
+
+// Add a custom action button for quick actions
+class _ProfileActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final Color? color;
+  const _ProfileActionButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.color,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: color?.withOpacity(0.08) ??
+          Theme.of(context).colorScheme.primary.withOpacity(0.08),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon,
+                  color: color ?? Theme.of(context).colorScheme.primary,
+                  size: 28),
+              const SizedBox(height: 4),
+              Text(label,
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: color ?? Theme.of(context).colorScheme.primary)),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
