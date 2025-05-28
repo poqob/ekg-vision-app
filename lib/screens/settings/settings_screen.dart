@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
-import 'app_info_screen.dart';
-import 'privacy_policy_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -66,32 +64,23 @@ class SettingsScreen extends StatelessWidget {
           ),
 
           // Other Settings Sections
-          _buildSectionHeader(context, 'About'),
+          _buildSectionHeader(context, 'Account'),
           _buildSettingItem(
             context,
-            icon: Icons.info_outline,
-            title: 'App Information',
-            subtitle: 'Version, licenses, and credits',
+            icon: Icons.lock_outline,
+            title: 'Change Password',
+            subtitle: 'Update your account password',
             onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const AppInfoScreen(),
-                ),
-              );
+              // TODO: Implement change password navigation
             },
           ),
-
           _buildSettingItem(
             context,
-            icon: Icons.privacy_tip_outlined,
-            title: 'Privacy Policy',
-            subtitle: 'How we handle your data',
+            icon: Icons.email_outlined,
+            title: 'Change Email',
+            subtitle: 'Update your account email',
             onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const PrivacyPolicyScreen(),
-                ),
-              );
+              // TODO: Implement change email navigation
             },
           ),
 
