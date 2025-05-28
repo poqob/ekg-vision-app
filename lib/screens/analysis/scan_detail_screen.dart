@@ -9,6 +9,12 @@ class ScanDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Assume scan.date is always DateTime
+    final d = scan.date;
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    String formattedDate =
+        '${twoDigits(d.day)}/${twoDigits(d.month)}/${d.year.toString().substring(2)}   ${twoDigits(d.hour)}:${twoDigits(d.minute)}';
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -43,14 +49,83 @@ class ScanDetailScreen extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 16),
-            Text('Patient: ${patientName ?? 'Unknown'}',
-                style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Text('Model: ${scan.modelName}'),
-            const SizedBox(height: 8),
-            Text('Date: ${scan.date}'),
-            const SizedBox(height: 8),
-            Text('Scan ID: ${scan.id}'),
+            // Modernized Patient/Model/Date section
+            Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              margin: const EdgeInsets.only(bottom: 16),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.person, color: Colors.blueAccent),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Patient',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Text(
+                          patientName != null
+                              ? _splitName(patientName!)
+                              : 'Unknown',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Icon(Icons.memory, color: Colors.deepPurple),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Model',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Text(
+                          scan.modelName,
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Icon(Icons.calendar_today, color: Colors.teal),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Date',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Text(
+                          formattedDate,
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 16),
             Text('Normal/Anormal Counts:',
                 style: Theme.of(context).textTheme.titleMedium),
@@ -151,6 +226,21 @@ class ScanDetailScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _splitName(String name) {
+    if (name.isEmpty) return name;
+    int upperCount = 0;
+    for (int i = 0; i < name.length; i++) {
+      if (name[i].toUpperCase() == name[i] &&
+          name[i].toLowerCase() != name[i]) {
+        upperCount++;
+        if (upperCount == 2) {
+          return name.substring(0, i) + ' ' + name.substring(i);
+        }
+      }
+    }
+    return name;
   }
 
   Widget _buildNormalAnormalCounts(List<dynamic> boxes) {
