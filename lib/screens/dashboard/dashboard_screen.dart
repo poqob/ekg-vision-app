@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import '../../state/app_state.dart';
+import '../../widgets/large_action_button.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -86,7 +87,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (imageFile == null ||
         selectedModel == null ||
         selectedPatient == null ||
-        userId == null) return;
+        userId == null) {
+      return;
+    }
     setState(() {
       loading = true;
       error = null;
@@ -164,16 +167,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Text('Select Image', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ElevatedButton.icon(
+              LargeActionButton(
                 icon: const Icon(Icons.photo),
-                label: const Text('Gallery'),
+                label: 'Gallery',
                 onPressed: () => pickImage(ImageSource.gallery),
               ),
-              const SizedBox(width: 12),
-              ElevatedButton.icon(
+              const SizedBox(width: 16),
+              LargeActionButton(
                 icon: const Icon(Icons.camera_alt),
-                label: const Text('Camera'),
+                label: 'Camera',
                 onPressed: () => pickImage(ImageSource.camera),
               ),
             ],
@@ -200,14 +204,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ],
           const SizedBox(height: 16),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.search),
-            label: const Text('Detect'),
-            onPressed: (!loading && imageFile != null && selectedModel != null)
-                ? detect
-                : null,
-            style: ElevatedButton.styleFrom(
-                minimumSize: const Size.fromHeight(48)),
+          // Custom Detect button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: LargeActionButton(
+                  icon: const Icon(Icons.search),
+                  label: 'Detect',
+                  onPressed:
+                      (!loading && imageFile != null && selectedModel != null)
+                          ? detect
+                          : () {},
+                  enabled:
+                      !loading && imageFile != null && selectedModel != null,
+                ),
+              ),
+            ],
           ),
           if (loading) ...[
             const SizedBox(height: 24),
