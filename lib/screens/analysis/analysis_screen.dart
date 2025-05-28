@@ -62,7 +62,6 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         padding: const EdgeInsets.only(
             bottom: 90.0), // Adjust as needed for nav bar height
         child: FloatingActionButton(
-          child: const Icon(Icons.search),
           onPressed: () async {
             final result = await showDialog<String>(
               context: context,
@@ -102,6 +101,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
             });
           },
           tooltip: 'Search patient',
+          child: const Icon(Icons.search),
         ),
       ),
       body: FutureBuilder<List<Scan>>(
@@ -159,10 +159,41 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                                 ),
                               )
                             : const Icon(Icons.favorite),
-                        title:
-                            Text(scanWithName.patientName ?? 'Unknown Patient'),
-                        subtitle: Text(
-                            'Model: ${scan.modelName}\nDate: ${_formatDate(scan.date)}'),
+                        title: Text(_separateName(
+                            scanWithName.patientName ?? 'Unknown Patient')),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Model: ${scan.modelName}'),
+                            const SizedBox(height: 2),
+                            Row(
+                              children: [
+                                const Icon(Icons.calendar_month,
+                                    size: 16, color: Colors.blueGrey),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _formatDateShort(scan.date),
+                                  style: TextStyle(
+                                    color: Colors.blueGrey.shade700,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  _formatTime(scan.date),
+                                  style: TextStyle(
+                                    color: Colors.blueGrey.shade700,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                         trailing: _buildNormalAnormalCounts(scan.boxes),
                         onTap: () {
                           Navigator.of(context).push(
@@ -186,20 +217,25 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    // Format as yyyy-MM-dd HH:mm (no milliseconds)
-    return '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')} '
-        '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  String _formatDateShort(DateTime date) {
+    // Format as dd/MM/yy
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year.toString().substring(2)}';
+  }
+
+  String _formatTime(DateTime date) {
+    // Format as HH:mm
+    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 
   Future<List<_ScanWithPatientName>> _attachPatientNames(
       List<Scan> scans) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
-    if (token == null)
+    if (token == null) {
       return scans
           .map((s) => _ScanWithPatientName(scan: s, patientName: null))
           .toList();
+    }
     final Map<String, String> patientNameCache = {};
     List<_ScanWithPatientName> result = [];
     for (final scan in scans) {
@@ -248,6 +284,12 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         ),
       ],
     );
+  }
+
+  String _separateName(String name) {
+    // Insert a space before the second uppercase letter (if any)
+    final regex = RegExp(r'([A-Z][a-z]+)([A-Z][a-z]+)');
+    return name.replaceAllMapped(regex, (m) => '${m[1]} ${m[2]}');
   }
 }
 
