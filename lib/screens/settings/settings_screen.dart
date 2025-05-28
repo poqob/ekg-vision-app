@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
+import 'change_email_screen.dart';
+import 'change_password_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -71,7 +73,11 @@ class SettingsScreen extends StatelessWidget {
             title: 'Change Password',
             subtitle: 'Update your account password',
             onTap: () {
-              // TODO: Implement change password navigation
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ChangePasswordScreen(),
+                ),
+              );
             },
           ),
           _buildSettingItem(
@@ -80,7 +86,11 @@ class SettingsScreen extends StatelessWidget {
             title: 'Change Email',
             subtitle: 'Update your account email',
             onTap: () {
-              // TODO: Implement change email navigation
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ChangeEmailScreen(),
+                ),
+              );
             },
           ),
 
