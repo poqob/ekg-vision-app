@@ -236,7 +236,7 @@ class ScanDetailScreen extends StatelessWidget {
           name[i].toLowerCase() != name[i]) {
         upperCount++;
         if (upperCount == 2) {
-          return name.substring(0, i) + ' ' + name.substring(i);
+          return '${name.substring(0, i)} ${name.substring(i)}';
         }
       }
     }

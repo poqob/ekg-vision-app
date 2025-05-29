@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../../widgets/large_action_button.dart';
 
 class ChangeEmailScreen extends StatefulWidget {
-  const ChangeEmailScreen({Key? key}) : super(key: key);
+  const ChangeEmailScreen({super.key});
 
   @override
   State<ChangeEmailScreen> createState() => _ChangeEmailScreenState();
@@ -80,10 +80,12 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty)
+                  if (value == null || value.isEmpty) {
                     return 'Please enter an email.';
-                  if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value))
+                  }
+                  if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value)) {
                     return 'Please enter a valid email address.';
+                  }
                   return null;
                 },
               ),
