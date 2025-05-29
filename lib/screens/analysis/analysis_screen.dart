@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'scan_detail_screen.dart';
+import '../../constants/app_config.dart';
+import '../../constants/api_endpoints.dart';
 
 class AnalysisScreen extends StatefulWidget {
   const AnalysisScreen({super.key});
@@ -24,7 +26,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     final token = prefs.getString('auth_token');
     if (token == null) throw Exception('User not logged in');
     final res = await http.get(
-      Uri.parse('http://localhost:8080/scan_results'),
+      Uri.parse('${AppConfig.apiBaseUrl}${ApiEndpoints.scanResults}'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -41,7 +43,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   Future<Map<String, dynamic>> fetchPatient(
       String patientId, String token) async {
     final res = await http.get(
-      Uri.parse('http://localhost:8080/patient/$patientId'),
+      Uri.parse('${AppConfig.apiBaseUrl}${ApiEndpoints.patient}/$patientId'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

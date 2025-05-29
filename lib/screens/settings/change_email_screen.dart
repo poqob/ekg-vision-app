@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../../widgets/large_action_button.dart';
+import '../../constants/app_config.dart';
+import '../../constants/api_endpoints.dart';
 
 class ChangeEmailScreen extends StatefulWidget {
   const ChangeEmailScreen({super.key});
@@ -32,7 +34,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
       return;
     }
     final response = await http.post(
-      Uri.parse('http://localhost:8080/change_credentials'),
+      Uri.parse('${AppConfig.apiBaseUrl}${ApiEndpoints.changeCredentials}'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

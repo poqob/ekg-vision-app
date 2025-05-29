@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../constants/app_config.dart';
+import '../../constants/api_endpoints.dart';
 
 class LoginHistoryScreen extends StatefulWidget {
   const LoginHistoryScreen({super.key});
@@ -24,7 +26,7 @@ class _LoginHistoryScreenState extends State<LoginHistoryScreen> {
     final token = prefs.getString('auth_token');
     if (token == null) throw Exception('User not logged in');
     final res = await http.get(
-      Uri.parse('http://localhost:8080/login_history'),
+      Uri.parse('${AppConfig.apiBaseUrl}${ApiEndpoints.loginHistory}'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

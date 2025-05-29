@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'auth_service.dart';
+import '../constants/app_config.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:8080'; // Change if needed
+  static const String baseUrl = AppConfig.apiBaseUrl;
   final AuthService _authService = AuthService();
 
   // GET request with authentication

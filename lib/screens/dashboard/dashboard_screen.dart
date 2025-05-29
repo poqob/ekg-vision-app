@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import '../../state/app_state.dart';
 import '../../widgets/large_action_button.dart';
+import '../../constants/app_config.dart';
+import '../../constants/api_endpoints.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -14,7 +16,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final String serviceUrl = 'http://localhost:5000'; // Change if needed
+  final String serviceUrl = AppConfig.modelServiceUrl; // Add this to AppConfig
   List<String> models = [];
   String? selectedModel;
   File? imageFile;
@@ -38,7 +40,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       error = null;
     });
     try {
-      final res = await http.get(Uri.parse('$serviceUrl/models'));
+      final res =
+          await http.get(Uri.parse('$serviceUrl${ApiEndpoints.models}'));
       final data = json.decode(res.body);
       setState(() {
         models = List<String>.from(data['models'] ?? []);
@@ -57,7 +60,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> fetchPatients() async {
     try {
-      final res = await http.get(Uri.parse('http://localhost:8080/patients'));
+      final res = await http
+          .get(Uri.parse('${AppConfig.apiBaseUrl}${ApiEndpoints.patients}'));
       final List<dynamic> data = json.decode(res.body);
       setState(() {
         patients = List<Map<String, dynamic>>.from(data);
@@ -97,8 +101,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       resultImageUrl = null;
     });
     try {
-      final req =
-          http.MultipartRequest('POST', Uri.parse('$serviceUrl/detect'));
+      final req = http.MultipartRequest(
+          'POST', Uri.parse('$serviceUrl${ApiEndpoints.detect}'));
       req.fields['model_name'] = selectedModel!;
       req.fields['patient_id'] = selectedPatient!['id'];
       req.fields['user_id'] = appState.currentUser?.id ?? '';

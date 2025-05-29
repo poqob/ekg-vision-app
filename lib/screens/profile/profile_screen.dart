@@ -10,6 +10,8 @@ import '../../models/doctor.dart' as user_model;
 import 'login_history_screen.dart';
 import 'about_screen.dart';
 import 'privacy_policy_screen.dart';
+import '../../constants/app_config.dart';
+import '../../constants/api_endpoints.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -104,7 +106,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           return;
                                         }
                                         final uri = Uri.parse(
-                                            'http://localhost:8080/upload_profile_picture?userId=${user.id}');
+                                            '${AppConfig.apiBaseUrl}${ApiEndpoints.uploadProfilePicture}?userId=${user.id}');
                                         final request = http.MultipartRequest(
                                             'POST', uri)
                                           ..headers['Authorization'] =
@@ -299,7 +301,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _downloadAndCacheProfilePicture(String userId) async {
     final prefs = await SharedPreferences.getInstance();
-    final ppUrl = 'http://localhost:8080/profile_picture/$userId';
+    final ppUrl =
+        '${AppConfig.apiBaseUrl}${ApiEndpoints.profilePicture}/$userId';
     try {
       final ppResponse = await http.get(Uri.parse(ppUrl));
       if (ppResponse.statusCode == 200 &&
