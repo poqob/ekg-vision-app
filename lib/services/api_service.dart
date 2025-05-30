@@ -4,23 +4,22 @@ import 'auth_service.dart';
 import '../constants/app_config.dart';
 
 class ApiService {
-  static const String baseUrl = AppConfig.apiBaseUrl;
   final AuthService _authService = AuthService();
 
   // GET request with authentication
   Future<Map<String, dynamic>> get(String endpoint) async {
     try {
       final token = await _authService.getToken();
+      final uri = _buildUri(endpoint);
       final response = await http.get(
-        Uri.parse('$baseUrl$endpoint'),
+        uri,
         headers: await _getHeaders(token),
       );
-
       return _handleResponse(response);
     } catch (e) {
       return {
         'success': false,
-        'message': 'Connection error: ${e.toString()}',
+        'message': 'Connection error: ${e.toString()} (endpoint: $endpoint)',
       };
     }
   }
@@ -30,17 +29,17 @@ class ApiService {
       String endpoint, Map<String, dynamic> data) async {
     try {
       final token = await _authService.getToken();
+      final uri = _buildUri(endpoint);
       final response = await http.post(
-        Uri.parse('$baseUrl$endpoint'),
+        uri,
         headers: await _getHeaders(token),
         body: jsonEncode(data),
       );
-
       return _handleResponse(response);
     } catch (e) {
       return {
         'success': false,
-        'message': 'Connection error: ${e.toString()}',
+        'message': 'Connection error: ${e.toString()} (endpoint: $endpoint)',
       };
     }
   }
@@ -50,17 +49,17 @@ class ApiService {
       String endpoint, Map<String, dynamic> data) async {
     try {
       final token = await _authService.getToken();
+      final uri = _buildUri(endpoint);
       final response = await http.put(
-        Uri.parse('$baseUrl$endpoint'),
+        uri,
         headers: await _getHeaders(token),
         body: jsonEncode(data),
       );
-
       return _handleResponse(response);
     } catch (e) {
       return {
         'success': false,
-        'message': 'Connection error: ${e.toString()}',
+        'message': 'Connection error: ${e.toString()} (endpoint: $endpoint)',
       };
     }
   }
@@ -69,18 +68,35 @@ class ApiService {
   Future<Map<String, dynamic>> delete(String endpoint) async {
     try {
       final token = await _authService.getToken();
+      final uri = _buildUri(endpoint);
       final response = await http.delete(
-        Uri.parse('$baseUrl$endpoint'),
+        uri,
         headers: await _getHeaders(token),
       );
-
       return _handleResponse(response);
     } catch (e) {
       return {
         'success': false,
-        'message': 'Connection error: ${e.toString()}',
+        'message': 'Connection error: ${e.toString()} (endpoint: $endpoint)',
       };
     }
+  }
+
+  // Helper to create properly formatted URI
+  Uri _buildUri(String endpoint) {
+    String baseUrl = AppConfig.apiBaseUrl;
+
+    // Ensure baseUrl doesn't end with a slash and endpoint starts with one
+    if (baseUrl.endsWith('/')) {
+      baseUrl = baseUrl.substring(0, baseUrl.length - 1);
+    }
+
+    if (!endpoint.startsWith('/')) {
+      endpoint = '/$endpoint';
+    }
+
+    final url = '$baseUrl$endpoint';
+    return Uri.parse(url);
   }
 
   // Helper to create headers with authentication token if available
