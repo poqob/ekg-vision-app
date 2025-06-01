@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
+import '../../widgets/large_action_button.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -177,27 +178,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 24),
 
                   // Login button
-                  ElevatedButton(
-                    onPressed: appState.isLoading ? null : _login,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: LargeActionButton(
+                      icon: const Icon(Icons.login),
+                      label: 'Login',
+                      onPressed: appState.isLoading ? () {} : _login,
+                      enabled: !appState.isLoading,
                     ),
-                    child: appState.isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text(
-                            'LOGIN',
-                            style: TextStyle(fontSize: 16),
-                          ),
                   ),
                   const SizedBox(height: 16),
 

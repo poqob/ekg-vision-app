@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
+import '../../widgets/large_action_button.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -78,6 +79,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('Register'),
         centerTitle: true,
       ),
@@ -257,27 +259,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: appState.isLoading ? null : _register,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: LargeActionButton(
+                      icon: const Icon(Icons.person_add),
+                      label: 'Register',
+                      onPressed: appState.isLoading ? () {} : _register,
+                      enabled: !appState.isLoading,
                     ),
-                    child: appState.isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text(
-                            'REGISTER',
-                            style: TextStyle(fontSize: 16),
-                          ),
                   ),
                   const SizedBox(height: 16),
                   Row(

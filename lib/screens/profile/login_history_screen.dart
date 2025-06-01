@@ -43,7 +43,10 @@ class _LoginHistoryScreenState extends State<LoginHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login History')),
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: const Text('Login History'),
+      ),
       body: FutureBuilder<List<LoginHistoryEntry>>(
         future: _futureHistory,
         builder: (context, snapshot) {
