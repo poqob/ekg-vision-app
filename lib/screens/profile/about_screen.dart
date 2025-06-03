@@ -54,7 +54,7 @@ class AboutScreen extends StatelessWidget {
             const Spacer(),
             Center(
               child: Text(
-                '\u00a9 2024 EKG Vision. All rights reserved.',
+                '\u00a9 2025 EKG Vision. All rights reserved.',
                 style: Theme.of(context)
                     .textTheme
                     .bodySmall

@@ -141,8 +141,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Patient Selection',
-              style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Patient Selection',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
           const SizedBox(height: 8),
           DropdownButtonFormField<Map<String, dynamic>>(
             value: selectedPatient,
@@ -156,8 +160,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             decoration: const InputDecoration(border: OutlineInputBorder()),
           ),
           const SizedBox(height: 16),
-          Text('Model Selection',
-              style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Model Selection',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
             value: selectedModel,
@@ -168,7 +176,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             decoration: const InputDecoration(border: OutlineInputBorder()),
           ),
           const SizedBox(height: 16),
-          Text('Select Image', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Select Image',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -232,12 +245,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
           if (error != null) ...[
             const SizedBox(height: 16),
-            Text(error!, style: const TextStyle(color: Colors.red)),
+            Builder(
+              builder: (context) {
+                final theme = Theme.of(context);
+                final isDark = theme.brightness == Brightness.dark;
+                final errorColor = isDark ? Colors.red.shade300 : Colors.red;
+                return Text(error!, style: TextStyle(color: errorColor));
+              },
+            ),
           ],
           if (resultImageUrl != null) ...[
             const SizedBox(height: 24),
-            Text('Annotated Image:',
-                style: Theme.of(context).textTheme.titleMedium),
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  'Annotated Image',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                ),
+              ),
+            ),
             const SizedBox(height: 8),
             Center(
               child: GestureDetector(
@@ -265,32 +295,65 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
           if (boxes.isNotEmpty) ...[
             const SizedBox(height: 24),
-            Text('Detections:', style: Theme.of(context).textTheme.titleMedium),
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  'Detections',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                ),
+              ),
+            ),
             ...boxes.asMap().entries.map((entry) {
               final b = entry.value;
               final isAnormal = b['class'] == 0;
               final classLabel = b['class'] == 0 ? 'Anormal' : 'Normal';
-              final color = isAnormal ? Colors.red : Colors.green;
+
+              final theme = Theme.of(context);
+              final isDark = theme.brightness == Brightness.dark;
+
+              // Define colors for both themes - use lighter shades for normal/abnormal in light mode
+              final anormalColor =
+                  isDark ? Colors.red.shade300 : Colors.red.shade700;
+              final normalColor =
+                  isDark ? Colors.green.shade300 : Colors.green.shade700;
+              final color = isAnormal ? anormalColor : normalColor;
+
+              // Use different background opacity based on theme - using lighter color instead of opacity
+              final bgColor = isDark
+                  ? Color.alphaBlend(
+                      color.withAlpha(38), Theme.of(context).cardColor)
+                  : Color.alphaBlend(
+                      color.withAlpha(10), Theme.of(context).cardColor);
+
               return Card(
-                color: color.withOpacity(0.07),
+                color: bgColor,
+                elevation: isDark ? 1.0 : 0.5,
+                margin: const EdgeInsets.symmetric(vertical: 4),
                 child: ListTile(
                   leading: isAnormal
-                      ? const Text('!',
+                      ? Text('!',
                           style: TextStyle(
                               fontSize: 28,
-                              color: Colors.red,
+                              color: anormalColor,
                               fontWeight: FontWeight.bold))
-                      : Icon(Icons.check_circle_outline, color: Colors.green),
+                      : Icon(Icons.check_circle_outline, color: normalColor),
                   title: Text(
                     'Class: $classLabel',
                     style: TextStyle(
-                      color: color,
+                      color: isDark ? color : color.withAlpha(220),
                       fontWeight:
                           isAnormal ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
                   subtitle: Text(
                     'Confidence: ${(b['confidence'] * 100).toStringAsFixed(1)}%',
+                    style: TextStyle(
+                      color: isDark ? null : Colors.black87,
+                    ),
                   ),
                 ),
               );

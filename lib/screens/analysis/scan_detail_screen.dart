@@ -25,6 +25,19 @@ class ScanDetailScreen extends StatelessWidget {
         padding: const EdgeInsets.all(20.0),
         child: ListView(
           children: [
+            // ECG heading and image
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  'ECG',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                ),
+              ),
+            ),
             if (scan.image.isNotEmpty)
               Center(
                 child: GestureDetector(
@@ -49,6 +62,17 @@ class ScanDetailScreen extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 16),
+            // Patience heading
+            Padding(
+              padding: const EdgeInsets.only(left: 4, bottom: 4),
+              child: Text(
+                'Patience',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+              ),
+            ),
             // Modernized Patient/Model/Date section
             Card(
               elevation: 2,
@@ -127,15 +151,38 @@ class ScanDetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Text('Normal/Anormal Counts:',
-                style: Theme.of(context).textTheme.titleMedium),
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: Text(
+                  'Detection Statistics',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                ),
+              ),
+            ),
             _buildNormalAnormalCounts(scan.boxes),
             const SizedBox(height: 16),
-            // Show annotated image before detections
+            // Result heading and annotated image
             if (scan.resultImage.isNotEmpty)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  Center(
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        'Result',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.2,
+                                ),
+                      ),
+                    ),
+                  ),
                   Center(
                     child: GestureDetector(
                       onTap: () {
@@ -169,7 +216,7 @@ class ScanDetailScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Center(
                     child: Text(
-                      'Detected Boxes:',
+                      'Detected Boxes',
                       style: Theme.of(context).textTheme.headlineSmall,
                       textAlign: TextAlign.center,
                     ),
@@ -255,21 +302,82 @@ class ScanDetailScreen extends StatelessWidget {
         }
       }
     }
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Normal: $normal',
-                style: const TextStyle(color: Colors.green)),
-            const SizedBox(height: 2),
-            Text('Anormal: $anormal',
-                style: const TextStyle(
-                    color: Colors.red, fontWeight: FontWeight.bold)),
-          ],
+
+    return Builder(builder: (context) {
+      final theme = Theme.of(context);
+      final isDark = theme.brightness == Brightness.dark;
+
+      final anormalColor = isDark ? Colors.red.shade300 : Colors.red;
+      final normalColor = isDark ? Colors.green.shade300 : Colors.green;
+
+      return Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
-      ],
-    );
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              // Normal count with icon
+              Column(
+                children: [
+                  const Icon(Icons.check_circle_outline,
+                      color: Colors.green, size: 32),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Normal',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    '$normal',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: normalColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+
+              // Divider
+              Container(
+                height: 60,
+                width: 1,
+                color: theme.dividerColor,
+              ),
+
+              // Anormal count with icon
+              Column(
+                children: [
+                  Text('!',
+                      style: TextStyle(
+                          fontSize: 32,
+                          color: anormalColor,
+                          fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Anormal',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    '$anormal',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: anormalColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    });
   }
 }
