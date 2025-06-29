@@ -148,16 +148,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
           ),
           const SizedBox(height: 8),
-          DropdownButtonFormField<Map<String, dynamic>>(
-            value: selectedPatient,
-            items: patients
-                .map((p) => DropdownMenuItem(
-                      value: p,
-                      child: Text('${p['username']} (${p['tc_no']})'),
-                    ))
-                .toList(),
-            onChanged: (v) => setState(() => selectedPatient = v),
-            decoration: const InputDecoration(border: OutlineInputBorder()),
+          Container(
+            width: double.infinity,
+            child: DropdownButtonFormField<Map<String, dynamic>>(
+              isExpanded:
+                  true, // Dropdown'un genişliği container'a göre ayarlanır
+              value: selectedPatient,
+              items: patients
+                  .map((p) => DropdownMenuItem(
+                        value: p,
+                        child: Text(
+                          '${p['username']} (${p['tc_no']})',
+                          overflow:
+                              TextOverflow.ellipsis, // Uzun metinleri kısaltır
+                        ),
+                      ))
+                  .toList(),
+              onChanged: (v) => setState(() => selectedPatient = v),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           Text(
@@ -167,13 +180,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
           ),
           const SizedBox(height: 8),
-          DropdownButtonFormField<String>(
-            value: selectedModel,
-            items: models
-                .map((m) => DropdownMenuItem(value: m, child: Text(m)))
-                .toList(),
-            onChanged: (v) => setState(() => selectedModel = v),
-            decoration: const InputDecoration(border: OutlineInputBorder()),
+          Container(
+            width: double.infinity,
+            child: DropdownButtonFormField<String>(
+              isExpanded:
+                  true, // Dropdown'un genişliği container'a göre ayarlanır
+              value: selectedModel,
+              items: models
+                  .map((m) => DropdownMenuItem(
+                        value: m,
+                        child: Text(
+                          m,
+                          overflow:
+                              TextOverflow.ellipsis, // Uzun metinleri kısaltır
+                        ),
+                      ))
+                  .toList(),
+              onChanged: (v) => setState(() => selectedModel = v),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           Text(

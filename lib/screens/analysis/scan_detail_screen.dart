@@ -62,91 +62,132 @@ class ScanDetailScreen extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 16),
-            // Patience heading
+            // Patient heading
             Padding(
               padding: const EdgeInsets.only(left: 4, bottom: 4),
               child: Text(
-                'Patience',
+                'Patient',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.2,
                     ),
               ),
             ),
-            // Modernized Patient/Model/Date section
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              margin: const EdgeInsets.only(bottom: 16),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.person, color: Colors.blueAccent),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'Patient',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
+            // Modernized Patient/Model/Date section with clickable functionality
+            GestureDetector(
+              onTap: () {
+                _showPatientDetailsDialog(
+                    context, patientName, scan.modelName, formattedDate);
+              },
+              child: Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                margin: const EdgeInsets.only(bottom: 16),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.person, color: Colors.blueAccent),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Patient',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
                           ),
-                        ),
-                        Text(
-                          patientName != null
-                              ? _splitName(patientName!)
-                              : 'Unknown',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        const Icon(Icons.memory, color: Colors.deepPurple),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'Model',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                          Flexible(
+                            child: Text(
+                              patientName != null
+                                  ? _splitName(patientName!)
+                                  : 'Unknown',
+                              style: Theme.of(context).textTheme.titleMedium,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                        Text(
-                          scan.modelName,
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        const Icon(Icons.calendar_today, color: Colors.teal),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'Date',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          const Icon(Icons.memory, color: Colors.deepPurple),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Model',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
                           ),
+                          Flexible(
+                            child: Text(
+                              scan.modelName,
+                              style: Theme.of(context).textTheme.bodyLarge,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          const Icon(Icons.calendar_today, color: Colors.teal),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Date',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          Flexible(
+                            child: Text(
+                              formattedDate,
+                              style: Theme.of(context).textTheme.bodyLarge,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      // Info hint
+                      const SizedBox(height: 10),
+                      Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              size: 16,
+                              color: Theme.of(context).colorScheme.secondary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Tap for details',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color:
+                                        Theme.of(context).colorScheme.secondary,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                            ),
+                          ],
                         ),
-                        Text(
-                          formattedDate,
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -271,6 +312,86 @@ class ScanDetailScreen extends StatelessWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  // Show dialog with full patient, model, and date information
+  void _showPatientDetailsDialog(BuildContext context, String? patientName,
+      String modelName, String formattedDate) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Details',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Patient details
+              Text(
+                'Patient',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueAccent,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              SelectableText(
+                patientName != null ? patientName : 'Unknown',
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 16),
+
+              // Model details
+              Text(
+                'Model',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.deepPurple,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              SelectableText(
+                modelName,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              const SizedBox(height: 16),
+
+              // Date details
+              Text(
+                'Date',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.teal,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              SelectableText(
+                formattedDate,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Close',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
