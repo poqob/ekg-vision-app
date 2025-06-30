@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import '../../state/app_state.dart';
 import '../../widgets/large_action_button.dart';
 import '../../constants/app_config.dart';
@@ -75,11 +76,77 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> pickImage(ImageSource source) async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: source, maxWidth: 1024);
-    if (picked != null) {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        imageQuality: 90,
+      );
+
+      if (picked != null) {
+        setState(() {
+          error = null; // Clear any previous errors
+        });
+        // Crop the image
+        await cropImage(File(picked.path));
+      }
+    } catch (e) {
+      print("Error picking image: $e");
       setState(() {
-        imageFile = File(picked.path);
+        error = "Failed to pick image: ${e.toString()}";
+      });
+    }
+  }
+
+  Future<void> cropImage(File imageFile) async {
+    try {
+      // EKG görüntüleri için 11:1 oranı (1782:157 oranına yakın) ekleyelim
+      final customRatio = CropAspectRatio(ratioX: 11, ratioY: 1);
+
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: imageFile.path,
+        aspectRatioPresets: [
+          CropAspectRatioPreset.original,
+          CropAspectRatioPreset.ratio16x9,
+          CropAspectRatioPreset.ratio3x2,
+        ],
+        cropStyle: CropStyle.rectangle,
+        aspectRatio: customRatio, // Varsayılan olarak özel oranı kullan
+        compressQuality: 90,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'EKG Görüntüsü Kırp',
+            toolbarColor: Theme.of(context).primaryColor,
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.original,
+            lockAspectRatio: false, // Kullanıcının değiştirmesine izin ver
+            hideBottomControls: false,
+          ),
+          IOSUiSettings(
+            title: 'EKG Görüntüsü Kırp',
+            doneButtonTitle: 'Tamam',
+            cancelButtonTitle: 'İptal',
+          ),
+        ],
+      );
+
+      if (croppedFile != null) {
+        setState(() {
+          this.imageFile = File(croppedFile.path);
+        });
+      } else {
+        // If user cancels cropping, still set the original image
+        setState(() {
+          this.imageFile = imageFile;
+        });
+      }
+    } catch (e) {
+      print("Error cropping image: $e");
+      // Show detailed error to help debugging
+      setState(() {
+        error = "Error cropping image: ${e.toString()}";
+        this.imageFile = imageFile; // Fallback to original image
       });
     }
   }
